@@ -4,7 +4,9 @@ import com.askmydoc.askmydoc.model.Document;
 import com.askmydoc.askmydoc.model.PageChunk;
 import com.askmydoc.askmydoc.repository.DocumentRepository;
 import com.askmydoc.askmydoc.repository.PageChunkRepository;
+import com.askmydoc.askmydoc.service.ai.EmbeddingService;
 import lombok.RequiredArgsConstructor;
+import org.apache.tika.exception.TikaException;
 import org.springframework.stereotype.Service;
 import java.io.*;
 import java.nio.file.*;
@@ -20,7 +22,7 @@ public class DocumentParserService {
     private final DocumentRepository docRepo;
     private final PageChunkRepository chunkRepo;
 
-    public Document ingest(org.springframework.web.multipart.MultipartFile file) throws IOException {
+    public Document ingest(org.springframework.web.multipart.MultipartFile file) throws IOException, TikaException {
         Files.createDirectories(Path.of("uploads"));
         String stored = UUID.randomUUID()+"-"+file.getOriginalFilename();
         Path path = Path.of("uploads", stored);
