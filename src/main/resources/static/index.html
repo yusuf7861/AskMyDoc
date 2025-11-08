@@ -56,13 +56,23 @@
       <div id="answer" class="answer"></div>
       <div id="citations" class="citations"></div>
     </section>
+
+    <section class="panel" id="status-panel">
+      <h2>System Status</h2>
+      <div class="status-block" id="stats">Loading stats...</div>
+      <div class="row" style="margin-top:12px; gap:12px;">
+        <button type="button" id="stats-refresh">Refresh Stats</button>
+        <button type="button" id="gemini-check">Test Gemini</button>
+        <button type="button" id="embed-check">Test Embedding</button>
+      </div>
+      <div id="gemini-status" class="status" style="margin-top:12px;"></div>
+    </section>
   </main>
 
   <footer>
-    <small>Backend on http://localhost:8082 • Make sure GEMINI_API_KEY is set.</small>
+    <small>Open this UI at http://localhost:8082/ • Ensure GEMINI_API_KEY is set before starting the server.</small>
   </footer>
 
   <script src="/app.js"></script>
 </body>
 </html>
-

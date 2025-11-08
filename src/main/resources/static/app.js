@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8082/api/v1";
+const API_BASE = "/api/v1";
 
 const docsEl = document.getElementById("docs");
 const docCountEl = document.getElementById("doc-count");
@@ -9,6 +9,13 @@ const askBtn = document.getElementById("ask-btn");
 const askStatus = document.getElementById("ask-status");
 const answerEl = document.getElementById("answer");
 const citationsEl = document.getElementById("citations");
+
+// System status panel logic
+const statsEl = document.getElementById("stats");
+const statsRefreshBtn = document.getElementById("stats-refresh");
+const geminiBtn = document.getElementById("gemini-check");
+const embedBtn = document.getElementById("embed-check");
+const geminiStatusEl = document.getElementById("gemini-status");
 
 async function fetchJSON(url, options){
   const r = await fetch(url, options);
@@ -102,5 +109,43 @@ function escapeHtml(str){
   return str.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 }
 
-loadDocs();
+async function loadStats(){
+  try {
+    statsRefreshBtn.disabled = true;
+    const data = await fetchJSON(`${API_BASE}/debug/stats`);
+    statsEl.textContent = `Documents: ${data.documents} • Chunks: ${data.chunks}`;
+  } catch(e){
+    statsEl.textContent = `Stats error: ${e.message}`;
+  } finally {
+    statsRefreshBtn.disabled = false;
+  }
+}
+statsRefreshBtn?.addEventListener("click", loadStats);
 
+geminiBtn?.addEventListener("click", async ()=>{
+  geminiStatusEl.textContent = "Checking Gemini...";
+  try {
+    const r = await fetch(`${API_BASE}/test/gemini`);
+    const text = await r.text();
+    if(!r.ok) throw new Error(r.status);
+    geminiStatusEl.textContent = text;
+  } catch(e){
+    geminiStatusEl.textContent = `Gemini test failed: ${e.message}`;
+  }
+});
+
+embedBtn?.addEventListener("click", async ()=>{
+  geminiStatusEl.textContent = "Embedding test...";
+  try {
+    const r = await fetch(`${API_BASE}/test/embed`);
+    const text = await r.text();
+    if(!r.ok) throw new Error(r.status);
+    geminiStatusEl.textContent = text;
+  } catch(e){
+    geminiStatusEl.textContent = `Embedding test failed: ${e.message}`;
+  }
+});
+
+loadStats();
+
+loadDocs();
