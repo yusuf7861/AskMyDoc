@@ -16,6 +16,7 @@ public class EmbeddingService {
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .build();
 
+    @SuppressWarnings("unchecked")
     public float[] embed(String text) {
         Map<String,Object> body = Map.of("model", model, "content", Map.of("parts", List.of(Map.of("text", text))));
         String url = apiBase + "/" + model + ":embedContent?key=" + apiKey;

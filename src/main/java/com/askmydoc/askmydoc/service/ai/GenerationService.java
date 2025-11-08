@@ -16,17 +16,31 @@ public class GenerationService {
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).build();
 
     public String generate(String prompt) {
-        Map<String,Object> body = Map.of("contents",
-                List.of(Map.of("parts", List.of(Map.of("text", prompt))))
-        );
-        String url = apiBase + "/" + model + ":generateContent?key=" + apiKey;
-        Map res = web.post()
-                .uri(url)
-                .bodyValue(body).retrieve().bodyToMono(Map.class).block();
+        Map<String,Object> body = Map.of("contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))));
+        String primaryUrl = apiBase + "/" + model + ":generateContent?key=" + apiKey;
+        try {
+            Map res = web.post().uri(primaryUrl).bodyValue(body).retrieve().bodyToMono(Map.class).block();
+            return extractText(res);
+        } catch (org.springframework.web.reactive.function.client.WebClientResponseException.NotFound nf) {
+            if (!model.endsWith("-latest")) {
+                String fallbackModel = model + "-latest";
+                String fallbackUrl = apiBase + "/" + fallbackModel + ":generateContent?key=" + apiKey;
+                Map res = web.post().uri(fallbackUrl).bodyValue(body).retrieve().bodyToMono(Map.class).block();
+                return extractText(res);
+            }
+            throw nf;
+        }
+    }
 
+    private String extractText(Map res) {
+        if (res == null) return "I couldn’t find that in the documents.";
         List<Map> cands = (List<Map>) res.get("candidates");
+        if (cands == null || cands.isEmpty()) return "I couldn’t find that in the documents.";
         Map content = (Map) cands.get(0).get("content");
+        if (content == null) return "I couldn’t find that in the documents.";
         List<Map> parts = (List<Map>) content.get("parts");
-        return (String) parts.get(0).get("text");
+        if (parts == null || parts.isEmpty()) return "I couldn’t find that in the documents.";
+        Object text = parts.get(0).get("text");
+        return text == null ? "I couldn’t find that in the documents." : text.toString();
     }
 }

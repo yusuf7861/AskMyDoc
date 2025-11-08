@@ -5,6 +5,7 @@ import com.askmydoc.askmydoc.repository.PageChunkRepository;
 import com.askmydoc.askmydoc.service.parser.Chunker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 @Service
@@ -14,6 +15,7 @@ public class RetrievalService {
     private final EmbeddingService embeddingService;
     private final Chunker chunker;
 
+    @Transactional(readOnly = true)
     public List<PageChunk> topK(String question, List<Long> docIds, int k) {
         float[] q = embeddingService.embed(question);
         List<PageChunk> pool = (docIds==null || docIds.isEmpty())

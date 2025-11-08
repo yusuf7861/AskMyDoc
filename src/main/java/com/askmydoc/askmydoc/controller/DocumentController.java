@@ -28,7 +28,7 @@ public class DocumentController {
                 "page_count", d.getPageCount(), "size_bytes", d.getSizeBytes());
     }
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Map<String,Object>> list() {
         return docRepo.findAll().stream().map(d -> Map.<String,Object>of(
                 "id", d.getId(), "file_name", d.getOriginalFileName(),

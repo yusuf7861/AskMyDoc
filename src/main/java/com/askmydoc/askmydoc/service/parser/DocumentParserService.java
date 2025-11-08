@@ -8,6 +8,7 @@ import com.askmydoc.askmydoc.service.ai.EmbeddingService;
 import lombok.RequiredArgsConstructor;
 import org.apache.tika.exception.TikaException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
@@ -22,6 +23,7 @@ public class DocumentParserService {
     private final DocumentRepository docRepo;
     private final PageChunkRepository chunkRepo;
 
+    @Transactional
     public Document ingest(org.springframework.web.multipart.MultipartFile file) throws IOException, TikaException {
         Files.createDirectories(Path.of("uploads"));
         String stored = UUID.randomUUID()+"-"+file.getOriginalFilename();
@@ -67,4 +69,3 @@ public class DocumentParserService {
         return doc;
     }
 }
-
