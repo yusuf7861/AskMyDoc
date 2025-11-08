@@ -19,8 +19,9 @@ public class GenerationService {
         Map<String,Object> body = Map.of("contents",
                 List.of(Map.of("parts", List.of(Map.of("text", prompt))))
         );
+        String url = apiBase + "/" + model + ":generateContent?key=" + apiKey;
         Map res = web.post()
-                .uri(apiBase + "/models/" + model + ":generateContent?key=" + apiKey)
+                .uri(url)
                 .bodyValue(body).retrieve().bodyToMono(Map.class).block();
 
         List<Map> cands = (List<Map>) res.get("candidates");

@@ -13,12 +13,21 @@ spring:
       ddl-auto: update
     show-sql: true
     open-in-view: false
-
+#  ai:
+#    openai:
+#      base-url: https://generativelanguage.googleapis.com/v1beta
+#      api-key: ${GEMINI_API_KEY}
+#      chat:
+#        options:
+#          model: gemini-1.5-flash
+#      embedding:
+#        options:
+#          model: models/text-embedding-004
 
 gemini:
-  apiBase: https://generativelanguage.googleapis.com/v1beta
+  apiBase: https://generativelanguage.googleapis.com/v1
   apiKey: ${GEMINI_API_KEY}
-  modelText: gemini-1.5-flash
+  modelText: models/gemini-1.5-flash
   modelEmbedding: models/text-embedding-004
 
 logging:

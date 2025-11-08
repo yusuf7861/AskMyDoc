@@ -17,9 +17,10 @@ public class EmbeddingService {
             .build();
 
     public float[] embed(String text) {
-        Map<String,Object> body = Map.of("model", model, "input", Map.of("text", text));
+        Map<String,Object> body = Map.of("model", model, "content", Map.of("parts", List.of(Map.of("text", text))));
+        String url = apiBase + "/" + model + ":embedContent?key=" + apiKey;
         Map res = web.post()
-                .uri(apiBase + "/text-embedding-004:embedText?key=" + apiKey)
+                .uri(url)
                 .bodyValue(body).retrieve().bodyToMono(Map.class).block();
 
         Map emb = (Map) res.get("embedding");
