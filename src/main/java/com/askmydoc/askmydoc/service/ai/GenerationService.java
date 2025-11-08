@@ -17,19 +17,43 @@ public class GenerationService {
 
     public String generate(String prompt) {
         Map<String,Object> body = Map.of("contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))));
-        String primaryUrl = apiBase + "/" + model + ":generateContent?key=" + apiKey;
-        try {
-            Map res = web.post().uri(primaryUrl).bodyValue(body).retrieve().bodyToMono(Map.class).block();
-            return extractText(res);
-        } catch (org.springframework.web.reactive.function.client.WebClientResponseException.NotFound nf) {
-            if (!model.endsWith("-latest")) {
-                String fallbackModel = model + "-latest";
-                String fallbackUrl = apiBase + "/" + fallbackModel + ":generateContent?key=" + apiKey;
-                Map res = web.post().uri(fallbackUrl).bodyValue(body).retrieve().bodyToMono(Map.class).block();
-                return extractText(res);
-            }
-            throw nf;
+        // Build list of candidate models to try in order.
+        List<String> candidates = new ArrayList<>();
+        // Base model first
+        candidates.add(model);
+        // If it ends with a stray hyphen, include trimmed version
+        if (model.endsWith("-")) {
+            candidates.add(model.substring(0, model.length()-1));
         }
+        // Add -latest variant if not already
+        if (!model.endsWith("-latest")) {
+            candidates.add(model + "-latest");
+        }
+        // Common numbered variants (avoid duplicates)
+        for (String suffix : List.of("-001","-002")) {
+            String m = model.endsWith("-") ? model.substring(0, model.length()-1) + suffix : model + suffix;
+            if (!candidates.contains(m)) candidates.add(m);
+        }
+
+        Map res = null;
+        String usedModel = null;
+        for (String m : candidates) {
+            String url = apiBase + "/" + m + ":generateContent"; // header holds key
+            try {
+                res = web.post().uri(url)
+                        .header("x-goog-api-key", apiKey)
+                        .bodyValue(body)
+                        .retrieve().bodyToMono(Map.class).block();
+                usedModel = m;
+                break; // success
+            } catch (org.springframework.web.reactive.function.client.WebClientResponseException.NotFound nf) {
+                // try next candidate
+            }
+        }
+        if (res == null) {
+            throw new IllegalStateException("Gemini model not found. Tried: " + String.join(", ", candidates));
+        }
+        return extractText(res) + "\n\n(model: " + usedModel + ")";
     }
 
     private String extractText(Map res) {

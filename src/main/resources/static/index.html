@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AskMyDoc</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>AskMyDoc</h1>
+    <nav>
+      <a href="/swagger-ui/index.html" target="_blank">Swagger</a>
+    </nav>
+  </header>
+
+  <main class="grid">
+    <section class="panel">
+      <h2>Upload Document</h2>
+      <form id="upload-form">
+        <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx,.rtf" required />
+        <button type="submit">Upload</button>
+      </form>
+      <div id="upload-status" class="status"></div>
+
+      <h2 style="margin-top: 24px;">Documents</h2>
+      <div class="toolbar">
+        <button id="refresh-btn" type="button">Refresh</button>
+        <span id="doc-count"></span>
+      </div>
+      <div id="docs" class="list"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Ask a question</h2>
+      <label for="question">Question</label>
+      <textarea id="question" rows="6" placeholder="Type your question..."></textarea>
+
+      <div class="row">
+        <div class="field">
+          <label for="topk">Top-K</label>
+          <input id="topk" type="number" min="1" max="50" value="5" />
+        </div>
+        <div class="field checkbox">
+          <label>
+            <input id="translate" type="checkbox" /> Translate citations
+          </label>
+        </div>
+      </div>
+
+      <div class="hint">Select documents on the left to scope the answer. Leave none selected to search all.</div>
+      <button id="ask-btn" type="button">Ask</button>
+
+      <div id="ask-status" class="status"></div>
+
+      <div id="answer" class="answer"></div>
+      <div id="citations" class="citations"></div>
+    </section>
+  </main>
+
+  <footer>
+    <small>Backend on http://localhost:8082 • Make sure GEMINI_API_KEY is set.</small>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
+
