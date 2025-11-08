@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: AskMyDoc
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/askmydoc
+    username: postgres
+    password: yusuf@123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+
+  ai:
+    openai:
+      api-key: ${GEMINI_API_KEY}
+      base-url: https://generativelanguage.googleapis.com/v1beta/openai
+      chat:
+        completions-path: /v1/chat/completions
+        options:
+          model: gemini-2.5-flash
+
+logging:
+  level:
+    org:
+      springframework:
+        ai:
+          chat:
+            client:
+              advisor: DEBUG
+
+
+server:
+  port: 8082
