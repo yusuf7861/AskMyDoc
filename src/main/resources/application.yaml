@@ -13,25 +13,21 @@ spring:
       ddl-auto: update
     show-sql: true
     open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
 
-  ai:
-    openai:
-      api-key: ${GEMINI_API_KEY}
-      base-url: https://generativelanguage.googleapis.com/v1beta/openai
-      chat:
-        completions-path: /v1/chat/completions
-        options:
-          model: gemini-2.5-flash
+gemini:
+  apiBase: https://generativelanguage.googleapis.com/v1beta
+  apiKey: ${GEMINI_API_KEY}
+  modelText: models/gemini-2.5-flash
+  modelEmbedding: models/text-embedding-004
 
 logging:
   level:
-    org:
-      springframework:
-        ai:
-          chat:
-            client:
-              advisor: DEBUG
-
+    org.springframework.ai.chat.client.advisor: DEBUG
 
 server:
   port: 8082

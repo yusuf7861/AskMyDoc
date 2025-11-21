@@ -17,10 +17,16 @@ public class EmbeddingService {
             .build();
 
     public float[] embed(String text) {
-        Map<String,Object> body = Map.of("model", model, "input", Map.of("text", text));
+        Map<String,Object> body = Map.of(
+                "model", model,
+                "content", Map.of("parts", List.of(Map.of("text", text)))
+        );
+        String url = apiBase + "/" + model + ":embedContent"; // use header for API key
         Map res = web.post()
-                .uri(apiBase + "/text-embedding-004:embedText?key=" + apiKey)
-                .bodyValue(body).retrieve().bodyToMono(Map.class).block();
+                .uri(url)
+                .header("x-goog-api-key", apiKey)
+                .bodyValue(body)
+                .retrieve().bodyToMono(Map.class).block();
 
         Map emb = (Map) res.get("embedding");
         List<Double> vals = (List<Double>) emb.get("values");
@@ -28,5 +34,5 @@ public class EmbeddingService {
         for (int i=0;i<v.length;i++) v[i]=vals.get(i).floatValue();
         return v;
     }
-}
 
+}
