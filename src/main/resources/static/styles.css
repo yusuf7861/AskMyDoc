@@ -44,4 +44,9 @@ footer { padding:14px 20px 40px; font-size:11px; color:var(--sub); text-align:ce
 #docs::-webkit-scrollbar-track { background:#1a2027; }
 #docs::-webkit-scrollbar-thumb { background:#2d3946; border-radius:6px; }
 #docs::-webkit-scrollbar-thumb:hover { background:#3a4958; }
-
+/* Modal styling */
+.modal { position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; z-index:1000; }
+.modal[aria-hidden="false"] { display:flex !important; }
+.modal .modal-content { background:#1e2630; color:var(--text); border:1px solid #2c3743; border-radius:10px; padding:18px 20px; width:min(520px, 92vw); box-shadow:0 8px 30px rgba(0,0,0,.45); }
+.modal .danger { background: var(--danger); }
+.modal .danger:hover { filter: brightness(1.05); }

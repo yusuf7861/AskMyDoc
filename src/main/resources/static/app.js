@@ -5,10 +5,16 @@ const docCountEl = document.getElementById("doc-count");
 const uploadForm = document.getElementById("upload-form");
 const uploadStatus = document.getElementById("upload-status");
 const refreshBtn = document.getElementById("refresh-btn");
+const clearAllBtn = document.getElementById("clear-all-btn");
 const askBtn = document.getElementById("ask-btn");
 const askStatus = document.getElementById("ask-status");
 const answerEl = document.getElementById("answer");
 const citationsEl = document.getElementById("citations");
+
+// confirmation modal elements
+const confirmModal = document.getElementById("confirm-modal");
+const confirmOk = document.getElementById("confirm-ok");
+const confirmCancel = document.getElementById("confirm-cancel");
 
 // System status panel logic
 const statsEl = document.getElementById("stats");
@@ -72,6 +78,55 @@ uploadForm.addEventListener("submit", async e => {
 });
 
 refreshBtn.addEventListener("click", loadDocs);
+
+// Helper to perform destructive clear action
+async function performClearAll(){
+  clearAllBtn.disabled = true;
+  try {
+    const resp = await fetch(`${API_BASE}/documents`, { method: 'DELETE' });
+    if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    await loadDocs();
+    await loadStats();
+    alert('All documents and chunks have been removed successfully.');
+  } catch(e){
+    alert('Failed to clear data: ' + e.message);
+  } finally {
+    clearAllBtn.disabled = false;
+  }
+}
+
+// Clear All button: show confirmation modal or fallback to native confirm
+clearAllBtn.addEventListener("click", () => {
+  if (confirmModal && confirmOk && confirmCancel) {
+    confirmModal.style.display = "block";
+    confirmModal.setAttribute("aria-hidden", "false");
+  } else {
+    const ok = window.confirm("This will permanently delete all documents, chunks, and uploaded files. This action cannot be undone. Proceed?");
+    if (ok) {
+      performClearAll();
+    }
+  }
+});
+
+confirmCancel?.addEventListener("click", () => {
+  if(!confirmModal) return;
+  confirmModal.style.display = "none";
+  confirmModal.setAttribute("aria-hidden", "true");
+});
+
+confirmOk?.addEventListener("click", async () => {
+  if(!confirmModal) return;
+  confirmOk.disabled = true;
+  confirmCancel.disabled = true;
+  try {
+    await performClearAll();
+  } finally {
+    confirmOk.disabled = false;
+    confirmCancel.disabled = false;
+    confirmModal.style.display = "none";
+    confirmModal.setAttribute("aria-hidden", "true");
+  }
+});
 
 askBtn.addEventListener("click", async () => {
   const question = document.getElementById("question").value.trim();

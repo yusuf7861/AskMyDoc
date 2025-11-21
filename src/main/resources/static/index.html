@@ -26,6 +26,7 @@
       <h2 style="margin-top: 24px;">Documents</h2>
       <div class="toolbar">
         <button id="refresh-btn" type="button">Refresh</button>
+        <button id="clear-all-btn" type="button" class="danger">Clear All</button>
         <span id="doc-count"></span>
       </div>
       <div id="docs" class="list"></div>
@@ -68,6 +69,19 @@
       <div id="gemini-status" class="status" style="margin-top:12px;"></div>
     </section>
   </main>
+
+  <!-- Confirmation modal for destructive actions -->
+  <div id="confirm-modal" class="modal" role="dialog" aria-hidden="true" style="display:none;">
+    <div class="modal-content">
+      <h3>Confirm Clear All</h3>
+      <p>This will permanently delete all documents, extracted page chunks, and uploaded files from the server. This action cannot be undone.</p>
+      <p><strong>Please back up any important files before proceeding.</strong></p>
+      <div class="row" style="justify-content:flex-end; gap:8px; margin-top:12px;">
+        <button id="confirm-cancel">Cancel</button>
+        <button id="confirm-ok" class="danger">Yes, clear everything</button>
+      </div>
+    </div>
+  </div>
 
   <footer>
     <small>Open this UI at http://localhost:8082/ • Ensure GEMINI_API_KEY is set before starting the server.</small>
