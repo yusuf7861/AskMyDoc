@@ -2,6 +2,7 @@
 
 Modern UI + backend for asking questions against uploaded documents with Gemini.
 
+
 ## Quick Start
 
 1. Set environment variables (Windows CMD example):
