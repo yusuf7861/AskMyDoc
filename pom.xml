@@ -12,7 +12,7 @@
     <artifactId>AskMyDoc</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>AskMyDoc</name>
-    <description>AskMyDoc</description>
+    <description>A Spring Boot application for intelligent document Q&amp;A using Google Gemini AI. Upload PDF, TXT, DOC, DOCX, or RTF files and ask questions with RAG (Retrieval-Augmented Generation) powered answers, including source citations and optional translation.</description>
     <url/>
     <licenses>
         <license/>
