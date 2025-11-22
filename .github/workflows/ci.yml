@@ -28,8 +28,6 @@ jobs:
       - name: Build & test
         run: mvn -B verify
 
-      - name: Package jar
-        run: mvn -B -DskipTests package
 
       - name: Upload jar artifact
         uses: actions/upload-artifact@v4
