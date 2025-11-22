@@ -19,7 +19,7 @@ mvnw spring-boot:run
 ```
 4. Open the UI:
 ```
-http://localhost:8082/
+http://localhost:8080/
 ```
 (Served by `src/main/resources/static/index.html`.)
 
