@@ -4,9 +4,12 @@ Modern UI + backend for asking questions against uploaded documents with Gemini.
 
 ## Quick Start
 
-1. Set environment variable (Windows CMD):
+1. Set environment variables (Windows CMD example):
 ```
 set GEMINI_API_KEY=YOUR_KEY_HERE
+set DB_URL=jdbc:postgresql://localhost:5432/askmydoc
+set DB_USER=admin
+set DB_PASSWORD=admin123
 ```
 2. Start Postgres locally with a database named `askmydoc` (adjust `application.yaml` if different). Ensure user/password matches.
 3. Run the app:
@@ -72,7 +75,13 @@ Base path: `/api/v1`
 ## Environment / Configuration
 - Adjust DB config in `application.yaml` if needed.
 - GEMINI_API_KEY must be valid for Gemini models `models/gemini-2.5-flash` and `models/text-embedding-004`.
+- The application reads `DB_URL`, `DB_USER`, `DB_PASSWORD`, and `GEMINI_API_KEY` from the environment, so mirror those locally and inside CI (GitHub secrets recommended).
 - Hibernate `ddl-auto: update` will manage schema evolution; for production consider `validate` + migrations.
+
+## CI
+- GitHub Actions workflow `.github/workflows/ci.yml` runs on push/PR to `main`, using Temurin JDK 17.
+- Secrets required: `DB_URL`, `DB_USER`, `DB_PASSWORD`, `GEMINI_API_KEY`.
+- The workflow runs `mvn verify`, packages the jar, and uploads artifacts (jar + surefire reports) for inspection.
 
 ## Future Improvements (Optional)
 - Pagination for documents list.
@@ -92,4 +101,3 @@ Run full tests:
 mvnw test
 ```
 Current test only verifies context loads; add more unit tests for retrieval & generation services as they evolve.
-
