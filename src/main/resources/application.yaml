@@ -32,7 +32,7 @@ spring:
 
 gemini:
   apiBase: https://generativelanguage.googleapis.com/v1beta
-  apiKey: ${GEMINI_API_KEY}
+  apiKey: ${GEMINI_API_KEY:dummy}
   modelText: models/gemini-2.5-flash
   modelEmbedding: models/text-embedding-004
 
