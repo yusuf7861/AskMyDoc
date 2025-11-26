@@ -1,92 +1,339 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AskMyDoc</title>
-  <link rel="stylesheet" href="/styles.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AskMyDoc</title>
+    <link rel="stylesheet" href="/styles.css" />
+
+    <style>
+        /* ================= ROOT THEME ================= */
+        :root {
+            --bg: #f7f9fb;
+            --panel-bg: #ffffff;
+            --border: #e5e7eb;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --primary: #2563eb;
+            --primary-hover: #1e4fcf;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --radius: 14px;
+            --shadow: 0 4px 14px rgba(0,0,0,0.08);
+        }
+
+        body {
+            margin: 0;
+            font-family: "Inter", system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+        }
+
+        /* ================= SIDEBAR ================= */
+        .sidebar {
+            width: 240px;
+            background: #ffffff;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.05);
+        }
+
+        .sidebar h1 {
+            margin: 0 0 30px;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .nav-link {
+            padding: 12px 14px;
+            border-radius: 10px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 6px;
+            transition: 0.2s;
+        }
+
+        .nav-link:hover {
+            background: var(--border);
+        }
+
+        /* ================= MAIN LAYOUT ================= */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .topbar {
+            height: 64px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* ================= GRID PANELS ================= */
+        .content {
+            padding: 32px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            gap: 32px;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        /* ================= INPUTS ================= */
+        input[type="file"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            background: #fff;
+            font-size: 0.95rem;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .row {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .field {
+            flex: 1;
+        }
+
+        /* ================= BUTTONS ================= */
+        button {
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            color: white;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        button:not(.danger) {
+            background: var(--primary);
+        }
+
+        .danger {
+            background: var(--danger);
+        }
+        .danger:hover {
+            background: var(--danger-hover);
+        }
+
+        /* ================= RESULTS ================= */
+        .status,
+        .answer,
+        .citations {
+            margin-top: 14px;
+            background: #fafafa;
+            border: 1px solid var(--border);
+            padding: 14px;
+            border-radius: 10px;
+            min-height: 40px;
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .list {
+            border: 1px solid var(--border);
+            padding: 12px;
+            background: #fff;
+            border-radius: 10px;
+            max-height: 350px;
+            overflow-y: auto;
+            font-size: 0.95rem;
+        }
+
+        /* ================= MODAL ================= */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 28px;
+            border-radius: var(--radius);
+            max-width: 460px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.25s ease;
+        }
+
+        footer {
+            text-align: center;
+            padding: 18px;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+    </style>
 </head>
+
 <body>
-  <header>
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="sidebar">
     <h1>AskMyDoc</h1>
-    <nav>
-      <a href="/swagger-ui/index.html" target="_blank">Swagger</a>
-    </nav>
-  </header>
 
-  <main class="grid">
-    <section class="panel">
-      <h2>Upload Document</h2>
-      <form id="upload-form">
-        <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx,.rtf" required />
-        <button type="submit">Upload</button>
-      </form>
-      <div id="upload-status" class="status"></div>
+    <a class="nav-link" href="/swagger-ui/index.html" target="_blank">Swagger Docs</a>
+</aside>
 
-      <h2 style="margin-top: 24px;">Documents</h2>
-      <div class="toolbar">
-        <button id="refresh-btn" type="button">Refresh</button>
-        <button id="clear-all-btn" type="button" class="danger">Clear All</button>
-        <span id="doc-count"></span>
-      </div>
-      <div id="docs" class="list"></div>
-    </section>
+<!-- ============ MAIN AREA ============ -->
+<div class="main-area">
 
-    <section class="panel">
-      <h2>Ask a question</h2>
-      <label for="question">Question</label>
-      <textarea id="question" rows="6" placeholder="Type your question..."></textarea>
+    <!-- Topbar -->
+    <div class="topbar">Dashboard</div>
 
-      <div class="row">
-        <div class="field">
-          <label for="topk">Top-K</label>
-          <input id="topk" type="number" min="1" max="50" value="5" />
-        </div>
-        <div class="field checkbox">
-          <label>
-            <input id="translate" type="checkbox" /> Translate citations
-          </label>
-        </div>
-      </div>
+    <!-- Main Content -->
+    <div class="content">
 
-      <div class="hint">Select documents on the left to scope the answer. Leave none selected to search all.</div>
-      <button id="ask-btn" type="button">Ask</button>
+        <!-- Upload Panel -->
+        <section class="panel">
+            <h2>Upload Document</h2>
 
-      <div id="ask-status" class="status"></div>
+            <form id="upload-form">
+                <label>Choose file</label>
+                <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx,.rtf" required />
+                <button type="submit" style="margin-top:14px;">Upload</button>
+            </form>
 
-      <div id="answer" class="answer"></div>
-      <div id="citations" class="citations"></div>
-    </section>
+            <div id="upload-status" class="status"></div>
 
-    <section class="panel" id="status-panel">
-      <h2>System Status</h2>
-      <div class="status-block" id="stats">Loading stats...</div>
-      <div class="row" style="margin-top:12px; gap:12px;">
-        <button type="button" id="stats-refresh">Refresh Stats</button>
-        <button type="button" id="gemini-check">Test Gemini</button>
-        <button type="button" id="embed-check">Test Embedding</button>
-      </div>
-      <div id="gemini-status" class="status" style="margin-top:12px;"></div>
-    </section>
-  </main>
+            <h2 style="margin-top:24px;">Document List</h2>
 
-  <!-- Confirmation modal for destructive actions -->
-  <div id="confirm-modal" class="modal" role="dialog" aria-hidden="true" style="display:none;">
-    <div class="modal-content">
-      <h3>Confirm Clear All</h3>
-      <p>This will permanently delete all documents, extracted page chunks, and uploaded files from the server. This action cannot be undone.</p>
-      <p><strong>Please back up any important files before proceeding.</strong></p>
-      <div class="row" style="justify-content:flex-end; gap:8px; margin-top:12px;">
-        <button id="confirm-cancel">Cancel</button>
-        <button id="confirm-ok" class="danger">Yes, clear everything</button>
-      </div>
+            <div class="toolbar">
+                <button id="refresh-btn" type="button">Refresh</button>
+                <button id="clear-all-btn" type="button" class="danger">Clear All</button>
+                <span id="doc-count"></span>
+            </div>
+
+            <div id="docs" class="list"></div>
+        </section>
+
+        <!-- Ask Question Panel -->
+        <section class="panel">
+            <h2>Ask a Question</h2>
+
+            <label for="question">Your Question</label>
+            <textarea id="question" placeholder="Type your question..."></textarea>
+
+            <div class="row">
+                <div class="field">
+                    <label for="topk">Top-K</label>
+                    <input id="topk" type="number" min="1" max="50" value="5" />
+                </div>
+
+                <div class="field">
+                    <label><input id="translate" type="checkbox" /> Translate citations</label>
+                </div>
+            </div>
+
+            <button id="ask-btn" type="button" style="margin-top:18px;">Ask</button>
+
+            <div id="ask-status" class="status"></div>
+            <div id="answer" class="answer"></div>
+            <div id="citations" class="citations"></div>
+        </section>
+
+        <!-- System Status Panel -->
+        <section class="panel" id="status-panel">
+            <h2>System Status</h2>
+
+            <div id="stats" class="status">Loading stats...</div>
+
+            <div class="row" style="margin-top:16px;">
+                <button id="stats-refresh">Refresh</button>
+                <button id="gemini-check">Test Gemini</button>
+                <button id="embed-check">Test Embedding</button>
+            </div>
+
+            <div id="gemini-status" class="status"></div>
+        </section>
+
     </div>
-  </div>
 
-  <footer>
-    <small>Open this UI at http://localhost:8082/ • Ensure GEMINI_API_KEY is set before starting the server.</small>
-  </footer>
+    <footer>
+        Open this UI at http://localhost:8082 — Ensure GEMINI_API_KEY is set before starting the server.
+    </footer>
 
-  <script src="/app.js"></script>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div id="confirm-modal" class="modal" role="dialog" aria-hidden="true" style="display:none;">
+    <div class="modal-content">
+        <h3>Confirm Clear All</h3>
+        <p>This action will permanently delete all documents and processed chunks.</p>
+        <p><strong>This cannot be undone.</strong></p>
+
+        <div class="row" style="justify-content:flex-end; margin-top:20px;">
+            <button id="confirm-cancel">Cancel</button>
+            <button id="confirm-ok" class="danger">Yes, delete everything</button>
+        </div>
+    </div>
+</div>
+
+<script src="/app.js"></script>
 </body>
 </html>

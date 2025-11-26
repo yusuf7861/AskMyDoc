@@ -16,19 +16,28 @@ public class GenerationService {
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).build();
 
     public String generate(String prompt) {
-        Map<String,Object> body = Map.of("contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))));
+        // In GenerationService.java inside the embed/generate method
+        Map<String, Object> body = Map.of(
+                "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
+                "generationConfig", Map.of("temperature", 0.0) // Add this line
+        );
+
         // Build list of candidate models to try in order.
         List<String> candidates = new ArrayList<>();
+
         // Base model first
         candidates.add(model);
+
         // If it ends with a stray hyphen, include trimmed version
         if (model.endsWith("-")) {
             candidates.add(model.substring(0, model.length()-1));
         }
+
         // Add -latest variant if not already
         if (!model.endsWith("-latest")) {
             candidates.add(model + "-latest");
         }
+
         // Common numbered variants (avoid duplicates)
         for (String suffix : List.of("-001","-002")) {
             String m = model.endsWith("-") ? model.substring(0, model.length()-1) + suffix : model + suffix;

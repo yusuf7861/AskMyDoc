@@ -3,6 +3,7 @@ package com.askmydoc.askmydoc.controller;
 import com.askmydoc.askmydoc.service.ai.EmbeddingService;
 import com.askmydoc.askmydoc.service.ai.GenerationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 

@@ -5,12 +5,24 @@ import java.util.*;
 
 @Component
 public class Chunker {
+    // Improved idea for Chunker.java
     public List<String> split(String text, int maxChars, int overlap) {
-        List<String> out = new ArrayList<>(); int n = text.length();
-        for (int start=0; start<n; start+=(maxChars-overlap)) {
-            int end = Math.min(n, start+maxChars); out.add(text.substring(start,end));
-            if (end==n) break;
+        List<String> out = new ArrayList<>();
+        // Regex to split by sentence boundaries while keeping punctuation
+        String[] sentences = text.split("(?<=[.!?])\\s+");
+
+        StringBuilder currentChunk = new StringBuilder();
+        for (String sentence : sentences) {
+            if (currentChunk.length() + sentence.length() > maxChars) {
+                out.add(currentChunk.toString());
+                // Implement overlap logic here if needed, or simple sliding window
+                currentChunk = new StringBuilder(sentence);
+            } else {
+                if (currentChunk.length() > 0) currentChunk.append(" ");
+                currentChunk.append(sentence);
+            }
         }
+        if (currentChunk.length() > 0) out.add(currentChunk.toString());
         return out;
     }
     public String toCsv(float[] v) {
