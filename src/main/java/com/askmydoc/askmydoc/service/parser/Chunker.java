@@ -7,6 +7,9 @@ import java.util.*;
 public class Chunker {
     // Improved idea for Chunker.java
     public List<String> split(String text, int maxChars, int overlap) {
+        if (overlap > 0) {
+            throw new UnsupportedOperationException("Overlap functionality is not implemented yet.");
+        }
         List<String> out = new ArrayList<>();
         // Regex to split by sentence boundaries while keeping punctuation
         String[] sentences = text.split("(?<=[.!?])\\s+");
