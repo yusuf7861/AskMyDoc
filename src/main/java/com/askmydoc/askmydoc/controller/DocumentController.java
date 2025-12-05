@@ -50,7 +50,7 @@ public class DocumentController {
                 .body(r);
     }
 
-    // factor the clearing logic into a private helper so multiple endpoints can reuse it
+    // Deletes all documents, chunks, and uploaded files.
     @DeleteMapping
     private Map<String,Object> doClearAll() throws IOException {
         long chunkCount = pageChunkRepo.count();
