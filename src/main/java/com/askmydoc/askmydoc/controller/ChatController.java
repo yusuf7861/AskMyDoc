@@ -107,7 +107,11 @@ public class ChatController {
         Set<Integer> ids = new HashSet<>();
         Matcher m = Pattern.compile("Source ID:\\s*(\\d+)").matcher(text);
         while (m.find()) {
-            ids.add(Integer.parseInt(m.group(1)));
+            try {
+                ids.add(Integer.parseInt(m.group(1)));
+            } catch (NumberFormatException e) {
+                // Skip invalid or out-of-range numbers
+            }
         }
         return ids;
     }
