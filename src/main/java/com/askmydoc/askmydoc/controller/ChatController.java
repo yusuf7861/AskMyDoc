@@ -32,10 +32,10 @@ public class ChatController {
         for (int i = 0; i < chunks.size(); i++) {
             PageChunk c = chunks.get(i);
             contextBuilder.append(String.format("""
-            === Source ID: %d (File: %s, Page: %d) ===
-            %s
-            
-            """, i + 1, c.getDocument().getOriginalFileName(), c.getPageNumber(), c.getText()));
+=== Source ID: %d (File: %s, Page: %d) ===
+%s
+
+""", i + 1, c.getDocument().getOriginalFileName(), c.getPageNumber(), c.getText()));
                     }
 
         // STRICT RAG prompt
