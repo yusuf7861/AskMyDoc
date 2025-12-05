@@ -13,7 +13,7 @@ public class Chunker {
 
         StringBuilder currentChunk = new StringBuilder();
         for (String sentence : sentences) {
-            if (currentChunk.length() + sentence.length() > maxChars) {
+            if (currentChunk.length() + sentence.length() + (currentChunk.length() > 0 ? 1 : 0) > maxChars) {
                 out.add(currentChunk.toString());
                 // Implement overlap logic here if needed, or simple sliding window
                 currentChunk = new StringBuilder(sentence);
