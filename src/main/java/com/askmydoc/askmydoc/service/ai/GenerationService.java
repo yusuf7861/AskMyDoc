@@ -16,7 +16,7 @@ public class GenerationService {
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).build();
 
     public String generate(String prompt) {
-        // In GenerationService.java inside the embed/generate method
+        // Set temperature to 0.0 for deterministic (non-random) output from the model
         Map<String, Object> body = Map.of(
                 "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
                 "generationConfig", Map.of("temperature", 0.0) // Add this line
