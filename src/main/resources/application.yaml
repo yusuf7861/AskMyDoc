@@ -3,12 +3,12 @@ spring:
     name: AskMyDoc
 
   datasource:
-#    url: jdbc:postgresql://localhost:5432/askmydoc
-#    username: admin
-#    password: admin123
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/askmydoc}
-    username: ${DB_USER:admin}
-    password: ${DB_PASSWORD:admin123}  
+    url: jdbc:postgresql://localhost:5432/askmydoc
+    username: admin
+    password: admin123
+#    url: ${DB_URL}
+#    username: ${DB_USER}
+#    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
     hikari:
@@ -32,7 +32,7 @@ spring:
 
 gemini:
   apiBase: https://generativelanguage.googleapis.com/v1beta
-  apiKey: ${GEMINI_API_KEY:dummy}
+  apiKey: ${GEMINI_API_KEY}
   modelText: models/gemini-2.5-flash
   modelEmbedding: models/text-embedding-004
 

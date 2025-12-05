@@ -2,6 +2,7 @@ package com.askmydoc.askmydoc.controller;
 
 import com.askmydoc.askmydoc.model.Document;
 import com.askmydoc.askmydoc.repository.DocumentRepository;
+import com.askmydoc.askmydoc.repository.PageChunkRepository;
 import com.askmydoc.askmydoc.service.parser.DocumentParserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.tika.exception.TikaException;
@@ -9,6 +10,7 @@ import org.springframework.core.io.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
@@ -19,6 +21,7 @@ import java.util.*;
 public class DocumentController {
     private final DocumentParserService parser;
     private final DocumentRepository docRepo;
+    private final PageChunkRepository pageChunkRepo;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Map<String,Object> upload(@RequestPart("file") MultipartFile file) throws IOException, TikaException {
@@ -45,5 +48,32 @@ public class DocumentController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\""+d.getOriginalFileName()+"\"")
                 .body(r);
+    }
+
+    // Deletes all documents, chunks, and uploaded files.
+    @DeleteMapping
+    public Map<String,Object> doClearAll() throws IOException {
+        long chunkCount = pageChunkRepo.count();
+        long docCount = docRepo.count();
+
+        pageChunkRepo.deleteAllInBatch();
+        docRepo.deleteAllInBatch();
+
+        Path uploadsDir = Path.of("uploads");
+        if (Files.exists(uploadsDir) && Files.isDirectory(uploadsDir)) {
+            try (var paths = Files.list(uploadsDir)) {
+                paths.forEach(p -> {
+                    try {
+                        Files.deleteIfExists(p);
+                    } catch (IOException ignored) {}
+                });
+            }
+        }
+
+        return Map.of(
+                "status", "ok",
+                "deleted_documents", docCount,
+                "deleted_chunks", chunkCount
+        );
     }
 }
