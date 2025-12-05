@@ -52,7 +52,7 @@ public class DocumentController {
 
     // Deletes all documents, chunks, and uploaded files.
     @DeleteMapping
-    private Map<String,Object> doClearAll() throws IOException {
+    public Map<String,Object> doClearAll() throws IOException {
         long chunkCount = pageChunkRepo.count();
         long docCount = docRepo.count();
 
