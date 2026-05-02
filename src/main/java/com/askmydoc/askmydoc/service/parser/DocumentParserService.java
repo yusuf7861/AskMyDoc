@@ -12,8 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
-import java.nio.file.*;
-import java.security.DigestInputStream;
+import java.nio.file.*;import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -108,11 +107,8 @@ public class DocumentParserService {
     private String sha256(Path path) throws IOException {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            // Stream the file instead of loading it all into memory.
             try (InputStream is = new DigestInputStream(Files.newInputStream(path), md)) {
-                byte[] buffer = new byte[8192];
-                //noinspection StatementWithEmptyBody
-                while (is.read(buffer) != -1) {}
+                is.transferTo(OutputStream.nullOutputStream());
             }
             return HexFormat.of().formatHex(md.digest());
         } catch (NoSuchAlgorithmException e) {

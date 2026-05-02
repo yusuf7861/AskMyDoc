@@ -14,13 +14,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        // IllegalArgumentException is used for user-visible validation errors (e.g. file size limits).
+        // The message is intentionally safe to expose.
+        String msg = ex.getMessage() != null ? ex.getMessage() : "Invalid request";
+        return ResponseEntity.badRequest().body(Map.of("error", msg));
     }
 
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<Map<String, String>> handleNotFound(NoSuchElementException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", ex.getMessage() != null ? ex.getMessage() : "Resource not found"));
+                .body(Map.of("error", "Resource not found"));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
