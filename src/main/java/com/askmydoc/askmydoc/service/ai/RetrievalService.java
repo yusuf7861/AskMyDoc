@@ -24,7 +24,7 @@ public class RetrievalService {
 
         record Scored(PageChunk c, double s){}
         return pool.stream().map(c -> {
-                    float[] v = chunker.fromCsv(c.getEmbeddingJson());
+                    float[] v = chunker.fromBytes(c.getEmbedding());
                     return new Scored(c, cosine(q, v));
                 }).sorted((a,b) -> Double.compare(b.s, a.s))
                 .limit(Math.max(1,k)).map(Scored::c).toList();

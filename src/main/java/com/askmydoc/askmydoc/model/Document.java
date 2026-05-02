@@ -13,4 +13,6 @@ public class Document {
     @Column(nullable=false) private Integer pageCount;
     @Column(nullable=false) private Long sizeBytes;
     @Column(nullable=false) private Instant uploadedAt = Instant.now();
+    /** SHA-256 hex of the file content — used to skip re-ingestion of identical files. */
+    @Column(unique=true) private String fileHash;
 }

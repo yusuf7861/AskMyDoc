@@ -6,5 +6,7 @@ import java.util.*;
 
 public interface PageChunkRepository extends JpaRepository<PageChunk, Long> {
     List<PageChunk> findByDocumentIdIn(Collection<Long> ids);
+    long countByDocumentId(Long documentId);
+    void deleteByDocumentId(Long documentId);
 }
 

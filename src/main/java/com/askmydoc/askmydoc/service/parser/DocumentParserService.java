@@ -7,10 +7,14 @@ import com.askmydoc.askmydoc.repository.PageChunkRepository;
 import com.askmydoc.askmydoc.service.ai.EmbeddingService;
 import lombok.RequiredArgsConstructor;
 import org.apache.tika.exception.TikaException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.io.*;
 import java.nio.file.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 @Service
@@ -23,12 +27,24 @@ public class DocumentParserService {
     private final DocumentRepository docRepo;
     private final PageChunkRepository chunkRepo;
 
+    @Value("${app.upload-dir:uploads}")
+    private String uploadDir;
+
     @Transactional
     public Document ingest(org.springframework.web.multipart.MultipartFile file) throws IOException, TikaException {
-        Files.createDirectories(Path.of("uploads"));
-        String stored = UUID.randomUUID()+"-"+file.getOriginalFilename();
-        Path path = Path.of("uploads", stored);
+        Path uploadsPath = Path.of(uploadDir);
+        Files.createDirectories(uploadsPath);
+        String stored = UUID.randomUUID() + "-" + file.getOriginalFilename();
+        Path path = uploadsPath.resolve(stored);
         Files.copy(file.getInputStream(), path);
+
+        // Dedup: skip re-ingestion of identical files based on SHA-256 hash.
+        String hash = sha256(path);
+        Optional<Document> existing = docRepo.findByFileHash(hash);
+        if (existing.isPresent()) {
+            Files.deleteIfExists(path); // discard the duplicate upload
+            return existing.get();
+        }
 
         String mime = tika.detect(Files.newInputStream(path), file.getOriginalFilename());
 
@@ -36,36 +52,56 @@ public class DocumentParserService {
         doc.setFileName(stored);
         doc.setOriginalFileName(file.getOriginalFilename());
         doc.setSizeBytes(file.getSize());
+        doc.setFileHash(hash);
 
         if ("application/pdf".equalsIgnoreCase(mime)) {
             int pages = pdf.getPageCount(Files.newInputStream(path));
             doc.setPageCount(pages);
             doc = docRepo.save(doc);
 
-            for (int p=1; p<=pages; p++) {
+            List<PageChunk> chunks = new ArrayList<>();
+            for (int p = 1; p <= pages; p++) {
                 String pageText = pdf.extractPage(Files.newInputStream(path), p);
                 for (String chunk : chunker.split(pageText, 3500, 800)) {
                     float[] emb = embeddingService.embed(chunk);
                     PageChunk pc = new PageChunk();
-                    pc.setDocument(doc); pc.setPageNumber(p);
-                    pc.setText(chunk); pc.setEmbeddingJson(chunker.toCsv(emb));
+                    pc.setDocument(doc);
+                    pc.setPageNumber(p);
+                    pc.setText(chunk);
+                    pc.setEmbedding(chunker.toBytes(emb));
                     pc.setTokenCount(chunk.length());
-                    chunkRepo.save(pc);
+                    chunks.add(pc);
                 }
             }
+            chunkRepo.saveAll(chunks);
         } else {
             String text = tika.extractText(Files.newInputStream(path));
             doc.setPageCount(1);
             doc = docRepo.save(doc);
+
+            List<PageChunk> chunks = new ArrayList<>();
             for (String chunk : chunker.split(text, 3500, 800)) {
                 float[] emb = embeddingService.embed(chunk);
                 PageChunk pc = new PageChunk();
-                pc.setDocument(doc); pc.setPageNumber(1);
-                pc.setText(chunk); pc.setEmbeddingJson(chunker.toCsv(emb));
+                pc.setDocument(doc);
+                pc.setPageNumber(1);
+                pc.setText(chunk);
+                pc.setEmbedding(chunker.toBytes(emb));
                 pc.setTokenCount(chunk.length());
-                chunkRepo.save(pc);
+                chunks.add(pc);
             }
+            chunkRepo.saveAll(chunks);
         }
         return doc;
+    }
+
+    private String sha256(Path path) throws IOException {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(Files.readAllBytes(path));
+            return HexFormat.of().formatHex(md.digest());
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
     }
 }

@@ -24,16 +24,13 @@ RUN ./mvnw clean package -DskipTests
 ###############################
 # Stage 2 — Final Runtime Image
 ###############################
-FROM ubuntu:latest
+FROM eclipse-temurin:17-jre-alpine
 LABEL authors="yjamal"
 
-# Ubuntu does not include Java or top; install only what’s needed
-RUN apt-get update && apt-get install -y \
-    openjdk-17-jre-headless \
-    procps \
-    && apt-get clean
-
 WORKDIR /app
+
+# Create upload directory (mount a volume here in production for persistence)
+RUN mkdir -p /app/uploads
 
 # Copy JAR from build stage
 COPY --from=build /app/target/*.jar app.jar
@@ -41,6 +38,4 @@ COPY --from=build /app/target/*.jar app.jar
 # Expose default Spring Boot port
 EXPOSE 8080
 
-# Entry point: uses your "top" idea for debugging + runs Spring Boot
-# If you want ONLY Spring Boot, I’ll give that version too.
 ENTRYPOINT ["java", "-jar", "app.jar"]

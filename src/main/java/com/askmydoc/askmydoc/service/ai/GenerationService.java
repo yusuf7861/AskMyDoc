@@ -1,61 +1,49 @@
 package com.askmydoc.askmydoc.service.ai;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import java.util.*;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class GenerationService {
     @Value("${gemini.apiBase}") String apiBase;
     @Value("${gemini.modelText}") String model;
     @Value("${gemini.apiKey}") String apiKey;
 
-    private final WebClient web = WebClient.builder()
-            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).build();
+    private final WebClient webClient;
 
     public String generate(String prompt) {
-        // Set temperature to 0.0 for deterministic (non-random) output from the model
         Map<String, Object> body = Map.of(
                 "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
-                "generationConfig", Map.of("temperature", 0.0) // Add this line
+                "generationConfig", Map.of("temperature", 0.0)
         );
 
-        // Build list of candidate models to try in order.
-        List<String> candidates = new ArrayList<>();
+        // Try the configured model first, then fall back to common variants.
+        List<String> candidates = buildCandidates(model);
 
-        // Base model first
-        candidates.add(model);
-
-        // If it ends with a stray hyphen, include trimmed version
-        if (model.endsWith("-")) {
-            candidates.add(model.substring(0, model.length()-1));
-        }
-
-        // Add -latest variant if not already
-        if (!model.endsWith("-latest")) {
-            candidates.add(model + "-latest");
-        }
-
-        // Common numbered variants (avoid duplicates)
-        for (String suffix : List.of("-001","-002")) {
-            String m = model.endsWith("-") ? model.substring(0, model.length()-1) + suffix : model + suffix;
-            if (!candidates.contains(m)) candidates.add(m);
-        }
-
-        Map res = null;
+        Map<String, Object> res = null;
         String usedModel = null;
         for (String m : candidates) {
-            String url = apiBase + "/" + m + ":generateContent"; // header holds key
+            String url = apiBase + "/" + m + ":generateContent";
             try {
-                res = web.post().uri(url)
+                @SuppressWarnings("unchecked")
+                Map<String, Object> response = webClient.post().uri(url)
                         .header("x-goog-api-key", apiKey)
                         .bodyValue(body)
-                        .retrieve().bodyToMono(Map.class).block();
+                        .retrieve()
+                        .bodyToMono(Map.class)
+                        .block();
+                res = response;
                 usedModel = m;
-                break; // success
-            } catch (org.springframework.web.reactive.function.client.WebClientResponseException.NotFound nf) {
+                break;
+            } catch (WebClientResponseException.NotFound ignored) {
                 // try next candidate
             }
         }
@@ -65,15 +53,31 @@ public class GenerationService {
         return extractText(res) + "\n\n(model: " + usedModel + ")";
     }
 
-    private String extractText(Map res) {
-        if (res == null) return "I couldn’t find that in the documents.";
-        List<Map> cands = (List<Map>) res.get("candidates");
-        if (cands == null || cands.isEmpty()) return "I couldn’t find that in the documents.";
-        Map content = (Map) cands.get(0).get("content");
-        if (content == null) return "I couldn’t find that in the documents.";
-        List<Map> parts = (List<Map>) content.get("parts");
-        if (parts == null || parts.isEmpty()) return "I couldn’t find that in the documents.";
+    private List<String> buildCandidates(String base) {
+        List<String> candidates = new ArrayList<>();
+        candidates.add(base);
+        String trimmed = base.endsWith("-") ? base.substring(0, base.length() - 1) : base;
+        if (!trimmed.equals(base)) candidates.add(trimmed);
+        if (!base.endsWith("-latest")) candidates.add(trimmed + "-latest");
+        for (String suffix : List.of("-001", "-002")) {
+            String m = trimmed + suffix;
+            if (!candidates.contains(m)) candidates.add(m);
+        }
+        return candidates;
+    }
+
+    private String extractText(Map<String, Object> res) {
+        if (res == null) return "I couldn't find that in the documents.";
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> cands = (List<Map<String, Object>>) res.get("candidates");
+        if (cands == null || cands.isEmpty()) return "I couldn't find that in the documents.";
+        @SuppressWarnings("unchecked")
+        Map<String, Object> content = (Map<String, Object>) cands.get(0).get("content");
+        if (content == null) return "I couldn't find that in the documents.";
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+        if (parts == null || parts.isEmpty()) return "I couldn't find that in the documents.";
         Object text = parts.get(0).get("text");
-        return text == null ? "I couldn’t find that in the documents." : text.toString();
+        return text == null ? "I couldn't find that in the documents." : text.toString();
     }
 }

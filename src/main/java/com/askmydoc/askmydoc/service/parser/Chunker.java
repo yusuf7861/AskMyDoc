@@ -1,40 +1,58 @@
 package com.askmydoc.askmydoc.service.parser;
 
 import org.springframework.stereotype.Component;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.util.*;
 
 @Component
 public class Chunker {
-    // Improved idea for Chunker.java
+
+    /**
+     * Splits {@code text} into chunks of at most {@code maxChars} characters.
+     * When a chunk boundary is hit, the last {@code overlap} characters of the
+     * previous chunk are prepended to the next chunk so that context is not lost
+     * across boundaries.  Split points respect sentence boundaries where possible.
+     */
     public List<String> split(String text, int maxChars, int overlap) {
-        if (overlap > 0) {
-            throw new UnsupportedOperationException("Overlap functionality is not implemented yet.");
-        }
         List<String> out = new ArrayList<>();
-        // Regex to split by sentence boundaries while keeping punctuation
         String[] sentences = text.split("(?<=[.!?])\\s+");
 
-        StringBuilder currentChunk = new StringBuilder();
+        StringBuilder current = new StringBuilder();
+
         for (String sentence : sentences) {
-            if (currentChunk.length() + sentence.length() + (currentChunk.length() > 0 ? 1 : 0) > maxChars) {
-                out.add(currentChunk.toString());
-                // Implement overlap logic here if needed, or simple sliding window
-                currentChunk = new StringBuilder(sentence);
-            } else {
-                if (currentChunk.length() > 0) currentChunk.append(" ");
-                currentChunk.append(sentence);
+            int extra = current.length() > 0 ? 1 : 0; // space separator
+            if (current.length() > 0 && current.length() + extra + sentence.length() > maxChars) {
+                String chunk = current.toString();
+                out.add(chunk);
+                current = new StringBuilder();
+                if (overlap > 0) {
+                    int start = Math.max(0, chunk.length() - overlap);
+                    current.append(chunk, start, chunk.length()).append(" ");
+                }
             }
+            if (current.length() > 0 && current.charAt(current.length() - 1) != ' ') {
+                current.append(' ');
+            }
+            current.append(sentence);
         }
-        if (currentChunk.length() > 0) out.add(currentChunk.toString());
+        if (current.length() > 0) out.add(current.toString());
         return out;
     }
-    public String toCsv(float[] v) {
-        StringBuilder sb = new StringBuilder();
-        for (int i=0;i<v.length;i++){ if(i>0) sb.append(','); sb.append(v[i]); }
-        return sb.toString();
+
+    /** Serialises a float array to raw bytes (LITTLE_ENDIAN IEEE-754). */
+    public byte[] toBytes(float[] v) {
+        ByteBuffer bb = ByteBuffer.allocate(v.length * Float.BYTES).order(ByteOrder.LITTLE_ENDIAN);
+        for (float f : v) bb.putFloat(f);
+        return bb.array();
     }
-    public float[] fromCsv(String csv) {
-        String[] p = csv.split(","); float[] v = new float[p.length];
-        for (int i=0;i<p.length;i++) v[i]=Float.parseFloat(p[i]); return v;
+
+    /** Deserialises a byte array produced by {@link #toBytes(float[])} back to floats. */
+    public float[] fromBytes(byte[] b) {
+        FloatBuffer fb = ByteBuffer.wrap(b).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer();
+        float[] v = new float[fb.remaining()];
+        fb.get(v);
+        return v;
     }
 }

@@ -10,6 +10,7 @@ public class PageChunk {
     @ManyToOne(optional=false) private Document document;
     @Column(nullable=false) private Integer pageNumber;      // 1-based
     @Column(nullable=false, columnDefinition = "text") private String text;
-    @Column(nullable=false, columnDefinition = "text") private String embeddingJson; // CSV of floats
+    /** Embedding stored as raw IEEE-754 float bytes (LITTLE_ENDIAN) — much more compact than CSV text. */
+    @Column(columnDefinition = "bytea") private byte[] embedding;
     @Column(nullable=false) private Integer tokenCount;
 }
