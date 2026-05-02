@@ -22,22 +22,20 @@ public class Chunker {
         StringBuilder current = new StringBuilder();
 
         for (String sentence : sentences) {
-            int extra = current.length() > 0 ? 1 : 0; // space separator
-            if (current.length() > 0 && current.length() + extra + sentence.length() > maxChars) {
-                String chunk = current.toString();
+            if (current.length() > 0 && current.length() + 1 + sentence.length() > maxChars) {
+                String chunk = current.toString().stripTrailing();
                 out.add(chunk);
                 current = new StringBuilder();
                 if (overlap > 0) {
                     int start = Math.max(0, chunk.length() - overlap);
-                    current.append(chunk, start, chunk.length()).append(" ");
+                    // Prepend tail of previous chunk; a space is added before the next sentence below.
+                    current.append(chunk, start, chunk.length());
                 }
             }
-            if (current.length() > 0 && current.charAt(current.length() - 1) != ' ') {
-                current.append(' ');
-            }
+            if (current.length() > 0) current.append(' ');
             current.append(sentence);
         }
-        if (current.length() > 0) out.add(current.toString());
+        if (current.length() > 0) out.add(current.toString().stripTrailing());
         return out;
     }
 

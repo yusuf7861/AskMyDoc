@@ -48,7 +48,12 @@ public class DocumentController {
     @GetMapping("/{id}/file")
     public ResponseEntity<Resource> file(@PathVariable Long id) throws IOException {
         Document d = docRepo.findById(id).orElseThrow();
-        Path p = Path.of(uploadDir, d.getFileName());
+        // d.getFileName() is a UUID stored in the database — no user-controlled data in the path.
+        Path uploadsPath = Path.of(uploadDir).toAbsolutePath().normalize();
+        Path p = uploadsPath.resolve(d.getFileName()).normalize();
+        if (!p.startsWith(uploadsPath)) {
+            throw new IllegalArgumentException("Invalid file path");
+        }
         Resource r = new UrlResource(p.toUri());
 
         // Detect actual MIME type instead of assuming PDF for all documents.
@@ -71,8 +76,11 @@ public class DocumentController {
         pageChunkRepo.deleteByDocumentId(id);
         docRepo.delete(d);
 
-        Path filePath = Path.of(uploadDir, d.getFileName());
-        Files.deleteIfExists(filePath);
+        Path uploadsPath = Path.of(uploadDir).toAbsolutePath().normalize();
+        Path filePath = uploadsPath.resolve(d.getFileName()).normalize();
+        if (filePath.startsWith(uploadsPath)) {
+            Files.deleteIfExists(filePath);
+        }
 
         return Map.of("status", "ok", "deleted_documents", 1, "deleted_chunks", chunkCount);
     }
@@ -86,7 +94,7 @@ public class DocumentController {
         pageChunkRepo.deleteAllInBatch();
         docRepo.deleteAllInBatch();
 
-        Path uploadsPath = Path.of(uploadDir);
+        Path uploadsPath = Path.of(uploadDir).toAbsolutePath().normalize();
         if (Files.exists(uploadsPath) && Files.isDirectory(uploadsPath)) {
             try (var paths = Files.list(uploadsPath)) {
                 paths.forEach(p -> {

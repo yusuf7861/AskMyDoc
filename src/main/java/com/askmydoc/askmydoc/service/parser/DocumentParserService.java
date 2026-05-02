@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
 import java.nio.file.*;
+import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -32,10 +33,19 @@ public class DocumentParserService {
 
     @Transactional
     public Document ingest(org.springframework.web.multipart.MultipartFile file) throws IOException, TikaException {
-        Path uploadsPath = Path.of(uploadDir);
+        Path uploadsPath = Path.of(uploadDir).toAbsolutePath().normalize();
         Files.createDirectories(uploadsPath);
-        String stored = UUID.randomUUID() + "-" + file.getOriginalFilename();
+
+        // Use a pure UUID as the stored filename so no user-controlled data enters the path.
+        // The human-readable name is preserved in the Document entity for display only.
+        String stored = UUID.randomUUID().toString();
         Path path = uploadsPath.resolve(stored);
+
+        // Verify the resolved path is strictly within the upload directory (defense-in-depth).
+        if (!path.normalize().startsWith(uploadsPath)) {
+            throw new IllegalArgumentException("Invalid file path");
+        }
+
         Files.copy(file.getInputStream(), path);
 
         // Dedup: skip re-ingestion of identical files based on SHA-256 hash.
@@ -98,7 +108,12 @@ public class DocumentParserService {
     private String sha256(Path path) throws IOException {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(Files.readAllBytes(path));
+            // Stream the file instead of loading it all into memory.
+            try (InputStream is = new DigestInputStream(Files.newInputStream(path), md)) {
+                byte[] buffer = new byte[8192];
+                //noinspection StatementWithEmptyBody
+                while (is.read(buffer) != -1) {}
+            }
             return HexFormat.of().formatHex(md.digest());
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 not available", e);
