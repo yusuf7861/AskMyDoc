@@ -3,21 +3,21 @@ spring:
     name: AskMyDoc
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/askmydoc
-    username: admin
-    password: admin123
-#    url: ${DB_URL}
-#    username: ${DB_USER}
-#    password: ${DB_PASSWORD}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: 5
       minimum-idle: 2
       idle-timeout: 30000
       max-lifetime: 600000
       connection-timeout: 30000
       pool-name: HikariPool
+      data-source-properties:
+        ssl: true
+        sslmode: require
 
   jpa:
     hibernate:
